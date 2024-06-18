@@ -59,6 +59,7 @@
         "@adonisjs/mail": "^9.1.0",
         "@vinejs/vine": "^1.7.0",
         "better-sqlite3": "^9.3.0",
+        "cloudinary": "^2.2.0",
         "edge.js": "^6.0.1",
         "luxon": "^3.4.4",
         "mjml": "^4.14.1",
