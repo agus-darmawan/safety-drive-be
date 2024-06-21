@@ -9,6 +9,9 @@ export default class Vehicle extends BaseModel {
   declare name: string
 
   @column()
+  declare hullNum: number
+
+  @column()
   declare violationId: number
 
   @column()

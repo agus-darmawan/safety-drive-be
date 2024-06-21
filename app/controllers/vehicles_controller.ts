@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Vehicle from '#models/vehicle'
+import Violation from '#models/violation';
 import { responseUtil } from '../../helper/response_util.js';
 import vine, { SimpleMessagesProvider } from '@vinejs/vine';
 import env from '#start/env'
@@ -20,7 +21,21 @@ export default class VehiclesController {
   public async index({ response }: HttpContext) {
     try {
       const vehicles = await Vehicle.all();
-      return responseUtil.success(response, vehicles, 'Vehicles fetched successfully');
+      const data = await Promise.all(
+        vehicles.map(async (vehicle) => {
+          const violation = await Violation.find(vehicle.violationId);
+          return {
+            id: vehicle.id,
+            name: vehicle.name,
+            hullNum : vehicle.hullNum,
+            violationId: vehicle.violationId,
+            violationName: violation ? violation.name : null,
+            filePath: vehicle.filePath,
+            date: vehicle.createdAt,
+          };
+        })
+      );
+      return responseUtil.success(response, data, 'Vehicles fetched successfully');
     } catch (error) {
       console.error('Error fetching vehicles:', error);
       return responseUtil.notFound(response, 'Error fetching vehicles');
@@ -46,6 +61,7 @@ export default class VehiclesController {
         .compile(
           vine.object({
             name: vine.string(),
+            hullNum: vine.number(),
             violationId: vine.number(),
             picture: vine.string(),
           })
@@ -55,11 +71,12 @@ export default class VehiclesController {
             'required': 'The {{ field }} field is required.',
           }),
         });
-
       const pictureExtension = this.checkBase64(data.picture);
 
       if (!pictureExtension) {
+        console.log('Invalid picture format. Only jpg and png are allowed.');
         return responseUtil.conflict(response, 'Invalid picture format. Only jpg and png are allowed.');
+
       }
 
       const pictureUploadResult = await cloudinary.uploader.upload(data.picture, {
@@ -70,6 +87,7 @@ export default class VehiclesController {
       const vehicle = await Vehicle.create({
         name: data.name,
         violationId: data.violationId,
+        hullNum: data.hullNum,
         filePath: pictureUploadResult.secure_url,
       });
 
