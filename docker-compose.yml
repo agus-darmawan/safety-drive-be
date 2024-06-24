@@ -1,24 +1,15 @@
 version: '3.9'
 services:
-  db:
-    image: postgres:16
-    container_name: safety_riding_db
-    environment:
-      POSTGRES_USER: ${PGUSER}
-      POSTGRES_PASSWORD: ${PGPASSWORD}
-      POSTGRES_DB: ${PGDATABASE}
+  safety-riding:
+    container_name: safety-riding
+    restart: always
+    build:
+      context: .
     ports:
-      - "${PGPORT}:5432"
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-
-  adminer:
-    image: adminer
-    container_name: safety_riding_adminer
-    ports:
-      - "8020:8080"
-    depends_on:
-      - db
-
-volumes:
-  postgres-data:
+      - ./:/home/node/app
+      - /home/node/app/node_modules
+    command: node ace serve --watch
