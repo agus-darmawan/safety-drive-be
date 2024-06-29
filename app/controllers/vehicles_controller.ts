@@ -5,6 +5,7 @@ import { responseUtil } from '../../helper/response_util.js';
 import vine, { SimpleMessagesProvider } from '@vinejs/vine';
 import env from '#start/env'
 import { v2 as cloudinary } from 'cloudinary';
+import { DateTime } from 'luxon';
 
 cloudinary.config({
   cloud_name: env.get('CLOUDINARY_CLOUD_NAME'),
@@ -71,12 +72,24 @@ export default class VehiclesController {
             'required': 'The {{ field }} field is required.',
           }),
         });
+
       const pictureExtension = this.checkBase64(data.picture);
 
       if (!pictureExtension) {
         console.log('Invalid picture format. Only jpg and png are allowed.');
         return responseUtil.conflict(response, 'Invalid picture format. Only jpg and png are allowed.');
+      }
 
+      const fiveMinutesAgo = DateTime.now().minus({ minutes: 5 }).toJSDate();
+
+      const existingRecord = await Vehicle.query()
+        .where('violationId', data.violationId)
+        .andWhere('hullNum', data.hullNum)
+        .andWhere('createdAt', '>=', fiveMinutesAgo)
+        .first();
+
+      if (existingRecord) {
+        return responseUtil.conflict(response, 'A record with the same violation ID and hull number was created within the last 5 minutes.');
       }
 
       const pictureUploadResult = await cloudinary.uploader.upload(data.picture, {

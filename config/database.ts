@@ -12,9 +12,6 @@ const dbConfig = defineConfig({
                 user: env.get('PGUSER'),
                 password: env.get('PGPASSWORD', ''),
                 database: env.get('PGDATABASE'),
-                ssl: {
-                    rejectUnauthorized: false,
-                },
             },
             migrations: {
                 naturalSort: true,
