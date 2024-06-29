@@ -15,7 +15,8 @@ export default class StatusesController {
       return {
         id: status.id,
         hullNum: status.hullNum,
-        status: isActive ? 'active' : 'inactive'
+        status: isActive ? 'active' : 'inactive',
+        date: status.updatedAt
       }
     })
 
